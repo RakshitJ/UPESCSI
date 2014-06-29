@@ -3,6 +3,11 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
         <!-- Customize your theme here. -->
+        <item name="android:actionBarStyle">@style/quantum_actionbar</item>
+    </style>
+
+    <style name="quantum_actionbar" parent="android:Widget.Holo.Light.ActionBar">
+        <item name="android:background">#3f51b5</item>
     </style>
 
 </resources>

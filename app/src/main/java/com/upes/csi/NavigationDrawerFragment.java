@@ -4,6 +4,8 @@ package com.upes.csi;
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -19,7 +21,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -57,6 +61,8 @@ public class NavigationDrawerFragment extends Fragment {
     private int mCurrentSelectedPosition = 0;
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
+
+    private String[] items;
 
     public NavigationDrawerFragment() {
     }
@@ -97,17 +103,39 @@ public class NavigationDrawerFragment extends Fragment {
                 selectItem(position);
             }
         });
-        mDrawerListView.setAdapter(new ArrayAdapter<String>(
+
+        //items
+        items = new String[]{
+                getString(R.string.title_section1),
+                getString(R.string.title_section2),
+                getString(R.string.title_section3),
+        };
+        Drawable header = getResources().getDrawable(R.drawable.ic_launcher);
+        ImageView iv = new ImageView(getActivity());
+        iv.setImageDrawable(header);
+        mDrawerListView.addHeaderView(iv);
+        mDrawerListView.setAdapter(new CustomArrayAdapter(
                 getActionBar().getThemedContext(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                new String[]{
-                        getString(R.string.title_section1),
-                        getString(R.string.title_section2),
-                        getString(R.string.title_section3),
-                }));
+                android.R.layout.simple_list_item_activated_1, items));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
+    }
+
+    private class CustomArrayAdapter extends ArrayAdapter<String>{
+
+        public CustomArrayAdapter(Context context, int resource, String[] items) {
+            super(context, resource, items);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View row = inflater.inflate(R.layout.drawer_list_item, parent, false);
+            TextView tv = (TextView) row.findViewById(R.id.textView1);
+            tv.setText(items[position]);
+            ImageView iv = (ImageView) row.findViewById(R.id.imageView1);
+            return row;
+        }
     }
 
     public boolean isDrawerOpen() {
