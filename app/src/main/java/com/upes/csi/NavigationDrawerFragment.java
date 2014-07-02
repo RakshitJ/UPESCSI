@@ -6,6 +6,7 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -62,7 +63,7 @@ public class NavigationDrawerFragment extends Fragment {
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
 
-    private String[] items;
+    public String[] items;
 
     public NavigationDrawerFragment() {
     }
@@ -113,7 +114,7 @@ public class NavigationDrawerFragment extends Fragment {
         Drawable header = getResources().getDrawable(R.drawable.ic_launcher);
         ImageView iv = new ImageView(getActivity());
         iv.setImageDrawable(header);
-        mDrawerListView.addHeaderView(iv);
+        mDrawerListView.addHeaderView(iv, null, false);
         mDrawerListView.setAdapter(new CustomArrayAdapter(
                 getActionBar().getThemedContext(),
                 android.R.layout.simple_list_item_activated_1, items));
@@ -134,6 +135,10 @@ public class NavigationDrawerFragment extends Fragment {
             TextView tv = (TextView) row.findViewById(R.id.textView1);
             tv.setText(items[position]);
             ImageView iv = (ImageView) row.findViewById(R.id.imageView1);
+            View v = (View) row.findViewById(R.id.view1);
+            if(position==1) {
+                v.setVisibility(View.VISIBLE);
+            }
             return row;
         }
     }
@@ -291,7 +296,12 @@ public class NavigationDrawerFragment extends Fragment {
         ActionBar actionBar = getActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-        actionBar.setTitle(R.string.app_name);
+        if(isDrawerOpen()) {
+            actionBar.setTitle(items[mCurrentSelectedPosition+1]);
+        }
+        else {
+            actionBar.setTitle(R.string.app_name);
+        }
     }
 
     private ActionBar getActionBar() {

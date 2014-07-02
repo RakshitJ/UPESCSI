@@ -6,6 +6,7 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -20,7 +21,9 @@ import android.widget.TextView;
 
 
 public class MyActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks,
+        SectionOneFragment.OnFragmentInteractionListener, SectionTwoFragment.OnFragmentInteractionListener,
+        SectionThreeFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -49,11 +52,44 @@ public class MyActivity extends Activity
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
-        // update the main content by replacing fragments
-        FragmentManager fragmentManager = getFragmentManager();
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
-                .commit();
+        //Nav drawer item click action
+        Fragment fragment = null;
+        switch(position) {
+            case 1:
+                fragment = new SectionOneFragment();
+                break;
+            case 2:
+                fragment = new SectionTwoFragment();
+                break;
+            case 3:
+                fragment = new SectionThreeFragment();
+                break;
+            default:
+                fragment = new SectionOneFragment();
+                break;
+        }
+
+        if(fragment!=null) {
+            // update the main content by replacing fragments
+            FragmentManager fragmentManager = getFragmentManager();
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, fragment)
+                    .commit();
+
+            //update selected title
+            String[] title = new String[] {
+                    "Section 1",
+                    "Section 2",
+                    "Section 3",
+                    "Section 4"
+            };
+            //setTitle(mTitle);
+        }
+
+    }
+
+    public void onFragmentInteraction(Uri uri) {
+        //Interact between fragments and activity
     }
 
     public void onSectionAttached(int number) {

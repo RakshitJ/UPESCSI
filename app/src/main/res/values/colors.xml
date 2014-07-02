@@ -1,3 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="ab_title">#ffffff</color>
+    <color name="ab_background">#3f51b5</color>
+    <color name="nav_drawer_bg">#ffffff</color>
 </resources>

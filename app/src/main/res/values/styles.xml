@@ -6,8 +6,15 @@
         <item name="android:actionBarStyle">@style/quantum_actionbar</item>
     </style>
 
+    <!--Actionbar style -->
     <style name="quantum_actionbar" parent="android:Widget.Holo.Light.ActionBar">
-        <item name="android:background">#3f51b5</item>
+        <item name="android:background">@color/ab_background</item>
+        <item name="android:titleTextStyle">@style/title_text</item>
+    </style>
+
+    <!--Actionbar title -->
+    <style name="title_text" parent="android:TextAppearance.Holo.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/ab_title</item>
     </style>
 
 </resources>
