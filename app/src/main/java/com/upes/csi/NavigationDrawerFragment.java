@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -136,7 +137,7 @@ public class NavigationDrawerFragment extends Fragment {
             tv.setText(items[position]);
             ImageView iv = (ImageView) row.findViewById(R.id.imageView1);
             View v = (View) row.findViewById(R.id.view1);
-            if(position==1) {
+            if(position==0) {
                 v.setVisibility(View.VISIBLE);
             }
             return row;
