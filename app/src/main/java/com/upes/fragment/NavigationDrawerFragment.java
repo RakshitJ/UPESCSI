@@ -1,4 +1,4 @@
-package com.upes.csi;
+package com.upes.fragment;
 
 
 import android.app.Activity;
@@ -28,6 +28,8 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.upes.csi.R;
 
 /**
  * Fragment used for managing interactions for and presentation of a navigation drawer.
@@ -113,8 +115,9 @@ public class NavigationDrawerFragment extends Fragment {
                 getString(R.string.title_section2),
                 getString(R.string.title_section3),
         };
-        Drawable header = getResources().getDrawable(R.drawable.ic_launcher);
+        Drawable header = getResources().getDrawable(R.drawable.csi_logo);
         ImageView iv = new ImageView(getActivity());
+        //iv.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
         iv.setImageDrawable(header);
         mDrawerListView.addHeaderView(iv, null, false);
         mDrawerListView.setAdapter(new CustomArrayAdapter(
@@ -138,7 +141,7 @@ public class NavigationDrawerFragment extends Fragment {
             tv.setText(items[position]);
             ImageView iv = (ImageView) row.findViewById(R.id.imageView1);
             View v = (View) row.findViewById(R.id.view1);
-            if(position==0) {
+            if(position==2) {
                 v.setVisibility(View.VISIBLE);
             }
             return row;

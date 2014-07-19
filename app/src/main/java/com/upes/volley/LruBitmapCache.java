@@ -1,4 +1,4 @@
-package com.upes.csi;
+package com.upes.volley;
 
 import android.graphics.Bitmap;
 import android.util.LruCache;
@@ -8,8 +8,8 @@ import com.android.volley.toolbox.ImageLoader;
 /**
  * Created by Vishal on 7/18/2014.
  */
-public class LruBitmapCache extends LruCache<String, Bitmap> implements ImageLoader.ImageCache {
-
+public class LruBitmapCache extends LruCache<String, Bitmap> implements
+        ImageLoader.ImageCache {
     public static int getDefaultLruCacheSize() {
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;

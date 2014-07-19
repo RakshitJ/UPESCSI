@@ -1,4 +1,4 @@
-package com.upes.csi;
+package com.upes.app;
 
 import android.app.Application;
 import android.text.TextUtils;
@@ -7,20 +7,20 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.ImageLoader;
 import com.android.volley.toolbox.Volley;
-
-import java.util.Objects;
+import com.upes.volley.LruBitmapCache;
 
 /**
  * Created by Vishal on 7/18/2014.
  */
-public class AppControl extends Application {
+public class AppController extends Application {
 
-    public static final String TAG = AppControl.class.getSimpleName();
+    public static final String TAG = AppController.class.getSimpleName();
 
     private RequestQueue mRequestQueue;
     private ImageLoader mImageLoader;
+    LruBitmapCache mLruBitmapCache;
 
-    private static AppControl mInstance;
+    private static AppController mInstance;
 
     @Override
     public void onCreate() {
@@ -28,38 +28,46 @@ public class AppControl extends Application {
         mInstance = this;
     }
 
-    public static synchronized AppControl getInstance() {
+    public static synchronized AppController getInstance() {
         return mInstance;
     }
 
     public RequestQueue getRequestQueue() {
-        if(mRequestQueue == null) {
+        if (mRequestQueue == null) {
             mRequestQueue = Volley.newRequestQueue(getApplicationContext());
         }
+
         return mRequestQueue;
     }
 
     public ImageLoader getImageLoader() {
         getRequestQueue();
-        if(mImageLoader == null) {
-            mImageLoader = new ImageLoader(this.mRequestQueue, new LruBitmapCache());
+        if (mImageLoader == null) {
+            getLruBitmapCache();
+            mImageLoader = new ImageLoader(this.mRequestQueue, mLruBitmapCache);
         }
+
         return this.mImageLoader;
     }
 
-    public <T> void addToRequestQueue(Request <T> req, String tag) {
-        //sets default tag if tag is empty
+    public LruBitmapCache getLruBitmapCache() {
+        if (mLruBitmapCache == null)
+            mLruBitmapCache = new LruBitmapCache();
+        return this.mLruBitmapCache;
+    }
+
+    public <T> void addToRequestQueue(Request<T> req, String tag) {
         req.setTag(TextUtils.isEmpty(tag) ? TAG : tag);
         getRequestQueue().add(req);
     }
 
-    public <T> void addToRequestQueue(Request <T> req) {
+    public <T> void addToRequestQueue(Request<T> req) {
         req.setTag(TAG);
         getRequestQueue().add(req);
     }
 
     public void cancelPendingRequests(Object tag) {
-        if(mRequestQueue != null) {
+        if (mRequestQueue != null) {
             mRequestQueue.cancelAll(tag);
         }
     }
