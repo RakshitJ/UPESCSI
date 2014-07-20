@@ -10,7 +10,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.support.v4.widget.DrawerLayout;
+import android.view.View;
 
+import com.fourmob.poppyview.PoppyViewHelper;
 import com.upes.fragment.NavigationDrawerFragment;
 import com.upes.fragment.SectionOneFragment;
 import com.upes.fragment.SectionThreeFragment;
@@ -31,6 +33,8 @@ public class MyActivity extends Activity
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
+    private PoppyViewHelper mPoppyViewHelper;
+    private View poppyview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,8 @@ public class MyActivity extends Activity
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
+        ActionBar ab = this.getActionBar();
+        ab.hide();
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
