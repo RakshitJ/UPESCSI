@@ -1,6 +1,7 @@
 package com.upes.fragment;
 
 import android.app.Activity;
+import android.app.ListFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Layout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +33,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class SectionOneFragment extends Fragment {
+public class SectionOneFragment extends ListFragment {
 
     private View rootView;
     private static final String TAG = SectionOneFragment.class.getSimpleName();
@@ -67,27 +69,32 @@ public class SectionOneFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        rootView = inflater.inflate(R.layout.fragment_section_one, container, false);
+        //rootView = inflater.inflate(R.layout.fragment_section_one, container, false);
+        //listView = (ListView) rootView.findViewById(R.id.list);
 
-        listView = (ListView) rootView.findViewById(R.id.list);
+
+        //listView.setAdapter(adapter);
+
+
+
         eventTitle = new ArrayList<String>();
 
         //Getting class usage counts
-        new Count().execute();
+        //new Count().execute();
+        new EventTitle().execute();
+        Toast.makeText(getActivity(), ""+count, Toast.LENGTH_SHORT).show();
 
-        //Fetching array variables (image url, title array)
-        for(i=0; i<=count; i++) {
-            //new Image().execute();
-            new EventTitle().execute();
-        }
 
+        //listView.setAdapter(adapter);
         adapter = new EventsAdapter(getActivity(), android.R.layout.simple_list_item_1, eventTitle);
-        listView.setAdapter(adapter);
+        setListAdapter(adapter);
 
         // Set up the poppy view
         mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
-        //poppyview = mPoppyViewHelper.createPoppyViewOnListView(listView.getID(), R.layout.poppyview_actionbar);
-        return rootView;
+        //poppyview = mPoppyViewHelper.createPoppyViewOnListView(android.R.id.list, R.layout.poppyview_actionbar);
+
+        //return rootView;
+        return null;
     }
 
     //Getting item counts
@@ -115,7 +122,14 @@ public class SectionOneFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void result) {
+
             count = elements.size();
+            //Fetching array variables (image url, title array)
+            /*for(i=0; i<count; i++) {
+                //new Image().execute();
+                new EventTitle().execute();
+            }*/
+
         }
     }
 
@@ -168,8 +182,13 @@ public class SectionOneFragment extends Fragment {
                 // Using elements to get class data
                 Elements titleClass = document.select("h3[class=cbp-vm-title]");
                 //Selecting element at specific position
-                Element classElement = titleClass.get(i);
-                titleSrc = classElement.text();
+                for(Element element : titleClass) {
+
+                    titleSrc = element.text();
+                    //eventTitle.add(titleSrc);
+                    adapter.add(titleSrc);
+                    Log.d("Title", titleSrc);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -179,7 +198,8 @@ public class SectionOneFragment extends Fragment {
         @Override
         protected void onPostExecute(Void result) {
             //eventTitle.add(i, titleSrc);
-            eventTitle.add(titleSrc);
+            //listView.deferNotifyDataSetChanged();
+            adapter.notifyDataSetChanged();
         }
     }
 
@@ -208,7 +228,7 @@ public class SectionOneFragment extends Fragment {
             iv.setImageBitmap(bitmap);*/
 
             //Setting event title
-            String title = eventTitle.get(position);
+            String title = adapter.getItem(position);
             tv.setText(title);
 
             return row;
