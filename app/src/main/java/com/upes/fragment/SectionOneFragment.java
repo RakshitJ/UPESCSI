@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class SectionOneFragment extends ListFragment {
+public class SectionOneFragment extends Fragment {
 
     private View rootView;
     private static final String TAG = SectionOneFragment.class.getSimpleName();
@@ -69,11 +69,10 @@ public class SectionOneFragment extends ListFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        //rootView = inflater.inflate(R.layout.fragment_section_one, container, false);
-        //listView = (ListView) rootView.findViewById(R.id.list);
+        rootView = inflater.inflate(R.layout.fragment_section_one, container, false);
+        listView = (ListView) rootView.findViewById(R.id.list);
 
 
-        //listView.setAdapter(adapter);
 
 
 
@@ -81,16 +80,19 @@ public class SectionOneFragment extends ListFragment {
 
         //Getting class usage counts
         //new Count().execute();
-        new EventTitle().execute();
         Toast.makeText(getActivity(), ""+count, Toast.LENGTH_SHORT).show();
 
+        //new EventTitle().execute();
+        eventTitle.add("asdf");
+        eventTitle.add("qwert");
 
         //listView.setAdapter(adapter);
         adapter = new EventsAdapter(getActivity(), android.R.layout.simple_list_item_1, eventTitle);
-        setListAdapter(adapter);
+        //setListAdapter(adapter);
+        listView.setAdapter(adapter);
 
         // Set up the poppy view
-        mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
+        //mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
         //poppyview = mPoppyViewHelper.createPoppyViewOnListView(android.R.id.list, R.layout.poppyview_actionbar);
 
         //return rootView;
@@ -185,8 +187,8 @@ public class SectionOneFragment extends ListFragment {
                 for(Element element : titleClass) {
 
                     titleSrc = element.text();
-                    //eventTitle.add(titleSrc);
-                    adapter.add(titleSrc);
+                    eventTitle.add(titleSrc);
+                    //adapter.add(titleSrc);
                     Log.d("Title", titleSrc);
                 }
             } catch (IOException e) {
@@ -200,6 +202,7 @@ public class SectionOneFragment extends ListFragment {
             //eventTitle.add(i, titleSrc);
             //listView.deferNotifyDataSetChanged();
             adapter.notifyDataSetChanged();
+            adapter.addAll(eventTitle);
         }
     }
 
@@ -228,7 +231,7 @@ public class SectionOneFragment extends ListFragment {
             iv.setImageBitmap(bitmap);*/
 
             //Setting event title
-            String title = adapter.getItem(position);
+            String title = eventTitle.get(position);
             tv.setText(title);
 
             return row;
@@ -264,4 +267,12 @@ public class SectionOneFragment extends ListFragment {
         public void onFragmentInteraction(Uri uri);
     }
 
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        // Set up the poppy view
+        mPoppyViewHelper = new PoppyViewHelper(getActivity());
+        //poppyview = mPoppyViewHelper.createPoppyViewOnListView(android.R.id.list, R.layout.poppyview_actionbar);
+    }
 }
