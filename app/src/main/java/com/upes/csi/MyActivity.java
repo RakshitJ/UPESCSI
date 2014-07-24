@@ -20,8 +20,7 @@ import com.upes.fragment.SectionTwoFragment;
 
 
 public class MyActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks,
-        SectionOneFragment.OnFragmentInteractionListener, SectionTwoFragment.OnFragmentInteractionListener {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, SectionTwoFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.

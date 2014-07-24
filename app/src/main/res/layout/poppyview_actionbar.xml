@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/drawer_icon"
-        android:src="@drawable/ic_drawer"
+        android:src="@drawable/ic_drawer_l"
         android:layout_weight="1"
         style="?android:borderlessButtonStyle"/>
 
@@ -21,5 +21,13 @@
         android:layout_height="wrap_content"
         android:id="@+id/poppy_title"
         android:layout_weight="20"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/drawer_overflow"
+        android:src="@drawable/ic_action_overflow"
+        android:layout_weight="1"
+        style="?android:borderlessButtonStyle"/>
 
 </LinearLayout>

@@ -51,10 +51,9 @@ public class SectionOneFragment extends Fragment {
     private TextView tv2;
     private Document document;
     private Bitmap bitmap;
+    private View poppyView;
     int count;
     int i;
-
-    private OnFragmentInteractionListener mListener;
 
     public SectionOneFragment() {
         // Required empty public constructor
@@ -69,35 +68,14 @@ public class SectionOneFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        rootView = inflater.inflate(R.layout.fragment_section_one, container, false);
+        rootView = inflater.inflate(R.layout.fragment_section_three, container, false);
         listView = (ListView) rootView.findViewById(R.id.list);
-
-
-
-
-
         eventTitle = new ArrayList<String>();
-
-        //Getting class usage counts
-        //new Count().execute();
-        Toast.makeText(getActivity(), ""+count, Toast.LENGTH_SHORT).show();
-
-        //new EventTitle().execute();
-        eventTitle.add("asdf");
-        eventTitle.add("qwert");
-
-        //listView.setAdapter(adapter);
         adapter = new EventsAdapter(getActivity(), android.R.layout.simple_list_item_1, eventTitle);
-        //setListAdapter(adapter);
-        listView.setAdapter(adapter);
+        new EventTitle().execute();
 
-        // Set up the poppy view
-        //mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
-        //poppyview = mPoppyViewHelper.createPoppyViewOnListView(android.R.id.list, R.layout.poppyview_actionbar);
-
-        //return rootView;
-        return null;
-    }
+        return rootView;
+    }/*
 
     //Getting item counts
     private class Count extends AsyncTask<Void, Void, Void> {
@@ -127,13 +105,13 @@ public class SectionOneFragment extends Fragment {
 
             count = elements.size();
             //Fetching array variables (image url, title array)
-            /*for(i=0; i<count; i++) {
+            *//*for(i=0; i<count; i++) {
                 //new Image().execute();
                 new EventTitle().execute();
-            }*/
+            }*//*
 
         }
-    }
+    }*/
 
     //Image asyncTask
     private class Image extends AsyncTask<Void, Void, Void> {
@@ -199,10 +177,7 @@ public class SectionOneFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void result) {
-            //eventTitle.add(i, titleSrc);
-            //listView.deferNotifyDataSetChanged();
-            adapter.notifyDataSetChanged();
-            adapter.addAll(eventTitle);
+            listView.setAdapter(adapter);
         }
     }
 
@@ -239,40 +214,17 @@ public class SectionOneFragment extends Fragment {
 
     }
 
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-    }
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        // Set up the poppy view
-        mPoppyViewHelper = new PoppyViewHelper(getActivity());
-        //poppyview = mPoppyViewHelper.createPoppyViewOnListView(android.R.id.list, R.layout.poppyview_actionbar);
+        //Instantiating PoppyView
+        mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
+        poppyView = mPoppyViewHelper.createPoppyViewOnListView(R.id.list, R.layout.poppyview_actionbar);
+        //Setting poppyView layout
+        TextView tv = (TextView) poppyView.findViewById(R.id.poppy_title);
+        tv.setText(R.string.title_section1);
+        int tv_color = getResources().getColor(R.color.white);
+        tv.setTextColor(tv_color);
     }
 }
