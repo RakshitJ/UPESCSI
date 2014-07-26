@@ -12,11 +12,13 @@ import android.app.Fragment;
 import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -71,47 +73,12 @@ public class SectionOneFragment extends Fragment {
         rootView = inflater.inflate(R.layout.fragment_section_three, container, false);
         listView = (ListView) rootView.findViewById(R.id.list);
         eventTitle = new ArrayList<String>();
+        eventImageUrl = new ArrayList<String>();
         adapter = new EventsAdapter(getActivity(), android.R.layout.simple_list_item_1, eventTitle);
         new EventTitle().execute();
 
         return rootView;
-    }/*
-
-    //Getting item counts
-    private class Count extends AsyncTask<Void, Void, Void> {
-        Elements elements;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            //count = 0;
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            //Getting ref html
-            try {
-                document = Jsoup.connect(URL).get();
-                // Using elements to get class data
-                elements = document.select("a[class=cbp-vm-image] img[src]");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-
-            count = elements.size();
-            //Fetching array variables (image url, title array)
-            *//*for(i=0; i<count; i++) {
-                //new Image().execute();
-                new EventTitle().execute();
-            }*//*
-
-        }
-    }*/
+    }
 
     //Image asyncTask
     private class Image extends AsyncTask<Void, Void, Void> {
@@ -148,6 +115,7 @@ public class SectionOneFragment extends Fragment {
     //Event Title asyncTask
     private class EventTitle extends AsyncTask<Void, Void, Void> {
         String titleSrc;
+        String imgSrc;
 
         @Override
         protected void onPreExecute() {
@@ -160,14 +128,25 @@ public class SectionOneFragment extends Fragment {
             try {
                 document = Jsoup.connect(URL).get();
                 // Using elements to get class data
-                Elements titleClass = document.select("h3[class=cbp-vm-title]");
-                //Selecting element at specific position
-                for(Element element : titleClass) {
+                Elements titleElements = document.select("h3[class=cbp-vm-title]");
+                //Getting another set of elements
+                Elements imgElements = document.select("a[class=cbp-vm-image] img[src]");
+                //Selecting element at specific position for event title
+                for(Element element : titleElements) {
 
+                    //Event title
                     titleSrc = element.text();
                     eventTitle.add(titleSrc);
                     //adapter.add(titleSrc);
                     Log.d("Title", titleSrc);
+                }
+                //storing images src in array
+                for(Element imageElement : imgElements) {
+
+                    //Images src
+                    imgSrc = imageElement.attr("src");
+                    eventImageUrl.add(imgSrc);
+                    Log.d("Image src", imgSrc);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -178,6 +157,30 @@ public class SectionOneFragment extends Fragment {
         @Override
         protected void onPostExecute(Void result) {
             listView.setAdapter(adapter);
+        }
+    }
+
+    private class LoadImage extends AsyncTask<String, Void, Void> {
+
+        @Override
+        protected Void doInBackground(String... strings) {
+
+            for(String thisIMG : strings) {
+
+                Log.d("TESTING IMG URL", thisIMG);
+                try {
+                    InputStream inputStream = new java.net.URL(URL+thisIMG).openStream();
+                    bitmap = BitmapFactory.decodeStream(inputStream);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            iv.setImageBitmap(bitmap);
         }
     }
 
@@ -196,14 +199,8 @@ public class SectionOneFragment extends Fragment {
             tv = (TextView) row.findViewById(R.id.textView1);
 
             //Download image from URL at position
-            /*String imgURL = eventImageUrl.get(position);
-            try {
-                InputStream inputStream = new java.net.URL(URL+imgURL).openStream();
-                bitmap = BitmapFactory.decodeStream(inputStream);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            iv.setImageBitmap(bitmap);*/
+            String imgURL = eventImageUrl.get(position);
+            new LoadImage().execute(imgURL);
 
             //Setting event title
             String title = eventTitle.get(position);
@@ -226,5 +223,74 @@ public class SectionOneFragment extends Fragment {
         tv.setText(R.string.title_section1);
         int tv_color = getResources().getColor(R.color.white);
         tv.setTextColor(tv_color);
+        ImageView iv = (ImageView) poppyView.findViewById(R.id.actionbar_overflow);
+        iv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PopupMenu popupMenu = new PopupMenu(getActivity(), view);
+                MenuInflater menuInflater = popupMenu.getMenuInflater();
+                menuInflater.inflate(R.menu.global, popupMenu.getMenu());
+                popupMenu.show();
+            }
+        });
+    }
+
+    /*
+    * Loading bitmaps and Handling concurrency
+    */
+
+    //Calculating inSampleSize to decode bitmaps
+    public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+
+        //Getting raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if(height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height/2;
+            final int halfWidth = width/2;
+
+            //Calculate the largest inSampleSize value that is power of 2 and keeps both
+            //height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+
+    //First getting options (width and height) with inJustDecodeBounds true, then
+    //decode again with new inSampleSize value and inJustDecodeBounds false
+
+    public static Bitmap decodeSampledBitmapFromURL(String imgURL, int reqWidth, int reqHeight) {
+        String URL = "http://www.upescsi.in/events/";
+        Bitmap bitmap1 = null;
+
+        //First decode with inJustDecodeBounds set to true to get dimensions
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        try {
+            InputStream inputStream = new java.net.URL(URL+imgURL).openStream();
+            bitmap1 = BitmapFactory.decodeStream(inputStream, null, options);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //Calculating the inSampleSize
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+
+        //Decode bimap with inSampleSize set
+        options.inJustDecodeBounds = false;
+        try {
+            InputStream inputStream = new java.net.URL(URL+imgURL).openStream();
+            bitmap1 = BitmapFactory.decodeStream(inputStream, null, options);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+        return bitmap1;
     }
 }
