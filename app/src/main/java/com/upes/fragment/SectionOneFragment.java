@@ -5,6 +5,8 @@ import android.app.ListFragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -179,10 +181,15 @@ public class SectionOneFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Bitmap bitmap1) {
+            if (isCancelled()) {
+                bitmap1 = null;
+            }
 
             if(imageViewWeakReference != null && bitmap1 !=null) {
                 final ImageView imageView = imageViewWeakReference.get();
-                if (imageView != null) {
+                final LoadImage bitmapWorkerTask = getBitmapWorkerTask(imageView);
+
+                if (this == bitmapWorkerTask && imageView != null) {
                     imageView.setImageBitmap(bitmap1);
                 }
             }
@@ -205,8 +212,7 @@ public class SectionOneFragment extends Fragment {
 
             //Download image from URL at position
             String imgURL = eventImageUrl.get(position);
-            LoadImage task = new LoadImage(iv);
-            task.execute(imgURL);
+            loadBitmap(imgURL, iv);
 
             //Setting event title
             String title = eventTitle.get(position);
@@ -215,6 +221,16 @@ public class SectionOneFragment extends Fragment {
             return row;
         }
 
+    }
+
+    public void loadBitmap(String imgURL, ImageView imageView) {
+
+        if (cancelPotentialWork(imgURL, imageView)) {
+            final LoadImage task = new LoadImage(imageView);
+            final AsyncDrawable asyncDrawable = new AsyncDrawable(imgURL, task);
+            imageView.setImageDrawable(asyncDrawable);
+            task.execute(imgURL);
+        }
     }
 
     @Override
@@ -298,5 +314,51 @@ public class SectionOneFragment extends Fragment {
         }
 
         return bitmap1;
+    }
+
+    //Drawable subclass to store reference back to worker task
+    static class AsyncDrawable extends BitmapDrawable {
+        private final WeakReference<LoadImage> bitmapWorkerTaskReference;
+
+        public AsyncDrawable(String imgURL, LoadImage bitmapWorkerTask) {
+            //super(imgURL, bitmap1);
+            bitmapWorkerTaskReference = new WeakReference<LoadImage>(bitmapWorkerTask);
+        }
+
+        public LoadImage getBitmapWorkerTask() {
+            return bitmapWorkerTaskReference.get();
+        }
+    }
+
+    //Check if another running task is already associated with imageView
+    public static boolean cancelPotentialWork(String data, ImageView imageView) {
+        final LoadImage bitmapWorkerTask = getBitmapWorkerTask(imageView);
+
+        if(bitmapWorkerTask != null) {
+            final String bitmapData = bitmapWorkerTask.data;
+            //If the bitmap is not yet set or differs from new data
+            if (bitmapData == null || bitmapData != data) {
+                //Cancel previous task
+                bitmapWorkerTask.cancel(true);
+            }
+            else {
+                //The same work is already in progress
+                return false;
+            }
+        }
+        //No task is associated with the ImageView, or existing task was cancelled
+        return true;
+    }
+
+    //Used to retrieve task associated with a particular imageView
+    private static LoadImage getBitmapWorkerTask(ImageView imageView) {
+        if(imageView != null) {
+            final Drawable drawable = imageView.getDrawable();
+            if (drawable instanceof AsyncDrawable) {
+                final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
+                return asyncDrawable.getBitmapWorkerTask();
+            }
+        }
+        return null;
     }
 }
