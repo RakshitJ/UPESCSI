@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.text.Layout;
 import android.util.Log;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.View;
@@ -57,6 +58,8 @@ public class SectionOneFragment extends Fragment {
     private Document document;
     private Bitmap bitmap;
     private View poppyView;
+    private LruCache<String, Bitmap> mMemoryCache;
+
     int count;
     int i;
 
@@ -74,6 +77,23 @@ public class SectionOneFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_section_three, container, false);
+
+        //Getting maximum available VM memory
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+
+        //Using 1/8th of the available memory for this memory cache
+        final int cacheSize = maxMemory / 8;
+
+        mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
+
+            @Override
+            protected int sizeOf(String key, Bitmap bitmap1) {
+
+                //The cache size will be measured in kb rather than number of items
+                return bitmap1.getByteCount() / 1024;
+            }
+        };
+
         listView = (ListView) rootView.findViewById(R.id.list);
         eventTitle = new ArrayList<String>();
         eventImageUrl = new ArrayList<String>();
@@ -83,39 +103,31 @@ public class SectionOneFragment extends Fragment {
         return rootView;
     }
 
-    //Image asyncTask
-    private class Image extends AsyncTask<Void, Void, Void> {
-        String imgSrc;
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            //Getting ref html
-            try {
-                document = Jsoup.connect(URL).get();
-                // Using elements to get class data
-                Elements imgClass = document.select("a[class=cbp-vm-image] img[src]");
-                //Selecting element at specific position
-                Element classElement = imgClass.get(i);
-                //Locating src attribute
-                imgSrc = classElement.attr("src");
-            } catch (IOException e) {
-                e.printStackTrace();
+        //Instantiating poppyView
+        mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
+        poppyView = mPoppyViewHelper.createPoppyViewOnListView(R.id.list, R.layout.poppyview_actionbar);
+        //Setting poppyView layout
+        TextView tv = (TextView) poppyView.findViewById(R.id.poppy_title);
+        tv.setText(R.string.title_section1);
+        int tv_color = getResources().getColor(R.color.white);
+        tv.setTextColor(tv_color);
+        ImageView iv = (ImageView) poppyView.findViewById(R.id.actionbar_overflow);
+        iv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PopupMenu popupMenu = new PopupMenu(getActivity(), view);
+                MenuInflater menuInflater = popupMenu.getMenuInflater();
+                menuInflater.inflate(R.menu.global, popupMenu.getMenu());
+                popupMenu.show();
             }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            //eventImageUrl.add(i, imgSrc);
-        }
+        });
     }
 
-    //Event Title asyncTask
+    //Setting eventTitle and eventImageURL arrayList
     private class EventTitle extends AsyncTask<Void, Void, Void> {
         String titleSrc;
         String imgSrc;
@@ -163,39 +175,6 @@ public class SectionOneFragment extends Fragment {
         }
     }
 
-    private class LoadImage extends AsyncTask<String, Void, Bitmap> {
-        private final WeakReference<ImageView> imageViewWeakReference;
-        private String data = null;
-
-        public LoadImage(ImageView imageView) {
-            //Using weak reference so that imageView can be garbage collected
-            imageViewWeakReference = new WeakReference<ImageView>(imageView);
-        }
-
-        @Override
-        protected Bitmap doInBackground(String... strings) {
-
-            data = strings[0];
-            return decodeSampledBitmapFromURL(data, 100, 100);
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap bitmap1) {
-            if (isCancelled()) {
-                bitmap1 = null;
-            }
-
-            if(imageViewWeakReference != null && bitmap1 !=null) {
-                final ImageView imageView = imageViewWeakReference.get();
-                final LoadImage bitmapWorkerTask = getBitmapWorkerTask(imageView);
-
-                if (this == bitmapWorkerTask && imageView != null) {
-                    imageView.setImageBitmap(bitmap1);
-                }
-            }
-        }
-    }
-
     //Adapter class
     private class EventsAdapter extends ArrayAdapter<String> {
 
@@ -224,42 +203,61 @@ public class SectionOneFragment extends Fragment {
     }
 
     public void loadBitmap(String imgURL, ImageView imageView) {
+        final Bitmap bitmap1 = getBitmapFromMemCache(imgURL);
 
-        if (cancelPotentialWork(imgURL, imageView)) {
-            final LoadImage task = new LoadImage(imageView);
-            final AsyncDrawable asyncDrawable = new AsyncDrawable(imgURL, task);
-            imageView.setImageDrawable(asyncDrawable);
-            task.execute(imgURL);
+
+        if (bitmap1 != null) {
+            imageView.setImageBitmap(bitmap1);
         }
-    }
+        else {
 
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        //Instantiating PoppyView
-        mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
-        poppyView = mPoppyViewHelper.createPoppyViewOnListView(R.id.list, R.layout.poppyview_actionbar);
-        //Setting poppyView layout
-        TextView tv = (TextView) poppyView.findViewById(R.id.poppy_title);
-        tv.setText(R.string.title_section1);
-        int tv_color = getResources().getColor(R.color.white);
-        tv.setTextColor(tv_color);
-        ImageView iv = (ImageView) poppyView.findViewById(R.id.actionbar_overflow);
-        iv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                PopupMenu popupMenu = new PopupMenu(getActivity(), view);
-                MenuInflater menuInflater = popupMenu.getMenuInflater();
-                menuInflater.inflate(R.menu.global, popupMenu.getMenu());
-                popupMenu.show();
+            if (cancelPotentialWork(imgURL, imageView)) {
+                final LoadImage task = new LoadImage(imageView);
+                final AsyncDrawable asyncDrawable = new AsyncDrawable(imgURL, task);
+                imageView.setImageDrawable(asyncDrawable);
+                task.execute(imgURL);
             }
-        });
+        }
     }
 
     /*
     * Loading bitmaps and Handling concurrency
     */
+
+    private class LoadImage extends AsyncTask<String, Void, Bitmap> {
+        private final WeakReference<ImageView> imageViewWeakReference;
+        private String data = null;
+
+        public LoadImage(ImageView imageView) {
+            //Using weak reference so that imageView can be garbage collected
+            imageViewWeakReference = new WeakReference<ImageView>(imageView);
+        }
+
+        @Override
+        protected Bitmap doInBackground(String... strings) {
+
+            data = strings[0];
+            final Bitmap bitmap1 = decodeSampledBitmapFromURL(data, 100, 100);
+            addBitmapToMemoryCache(data, bitmap1);
+            return bitmap1;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap1) {
+            if (isCancelled()) {
+                bitmap1 = null;
+            }
+
+            if(imageViewWeakReference != null && bitmap1 !=null) {
+                final ImageView imageView = imageViewWeakReference.get();
+                final LoadImage bitmapWorkerTask = getBitmapWorkerTask(imageView);
+
+                if (this == bitmapWorkerTask && imageView != null) {
+                    imageView.setImageBitmap(bitmap1);
+                }
+            }
+        }
+    }
 
     //Calculating inSampleSize to decode bitmaps
     public static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
@@ -360,5 +358,19 @@ public class SectionOneFragment extends Fragment {
             }
         }
         return null;
+    }
+
+    /*
+    * Using memory cache
+    */
+
+    public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
+        if(getBitmapFromMemCache(key) == null) {
+            mMemoryCache.put(key, bitmap);
+        }
+    }
+
+    public Bitmap getBitmapFromMemCache(String key) {
+        return mMemoryCache.get(key);
     }
 }
