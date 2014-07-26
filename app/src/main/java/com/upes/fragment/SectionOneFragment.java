@@ -32,6 +32,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -160,27 +161,31 @@ public class SectionOneFragment extends Fragment {
         }
     }
 
-    private class LoadImage extends AsyncTask<String, Void, Void> {
+    private class LoadImage extends AsyncTask<String, Void, Bitmap> {
+        private final WeakReference<ImageView> imageViewWeakReference;
+        private String data = null;
 
-        @Override
-        protected Void doInBackground(String... strings) {
-
-            for(String thisIMG : strings) {
-
-                Log.d("TESTING IMG URL", thisIMG);
-                try {
-                    InputStream inputStream = new java.net.URL(URL+thisIMG).openStream();
-                    bitmap = BitmapFactory.decodeStream(inputStream);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            return null;
+        public LoadImage(ImageView imageView) {
+            //Using weak reference so that imageView can be garbage collected
+            imageViewWeakReference = new WeakReference<ImageView>(imageView);
         }
 
         @Override
-        protected void onPostExecute(Void result) {
-            iv.setImageBitmap(bitmap);
+        protected Bitmap doInBackground(String... strings) {
+
+            data = strings[0];
+            return decodeSampledBitmapFromURL(data, 100, 100);
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap1) {
+
+            if(imageViewWeakReference != null && bitmap1 !=null) {
+                final ImageView imageView = imageViewWeakReference.get();
+                if (imageView != null) {
+                    imageView.setImageBitmap(bitmap1);
+                }
+            }
         }
     }
 
@@ -200,7 +205,8 @@ public class SectionOneFragment extends Fragment {
 
             //Download image from URL at position
             String imgURL = eventImageUrl.get(position);
-            new LoadImage().execute(imgURL);
+            LoadImage task = new LoadImage(iv);
+            task.execute(imgURL);
 
             //Setting event title
             String title = eventTitle.get(position);
@@ -290,7 +296,7 @@ public class SectionOneFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         return bitmap1;
     }
 }
