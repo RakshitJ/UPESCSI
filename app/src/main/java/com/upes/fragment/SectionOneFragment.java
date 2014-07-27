@@ -1,17 +1,13 @@
 package com.upes.fragment;
 
-import android.app.Activity;
-import android.app.ListFragment;
+import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Fragment;
-import android.text.Layout;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -23,7 +19,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.fourmob.poppyview.PoppyViewHelper;
 import com.upes.csi.R;
@@ -33,10 +28,13 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.URL;
 import java.util.ArrayList;
 
 public class SectionOneFragment extends Fragment {
@@ -59,6 +57,10 @@ public class SectionOneFragment extends Fragment {
     private Bitmap bitmap;
     private View poppyView;
     private LruCache<String, Bitmap> mMemoryCache;
+    private NavigationDrawerFragment mNavigationDrawerFragment;
+    private File cacheDir;
+    private File cacheFile;
+    private FileInputStream fileInputStream;
 
     int count;
     int i;
@@ -77,6 +79,9 @@ public class SectionOneFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_section_three, container, false);
+
+        //Create a path pointing to sys-recommended cache dir for app
+        cacheDir = new File(getActivity().getCacheDir(), "thumbnails");
 
         //Getting maximum available VM memory
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
@@ -107,6 +112,10 @@ public class SectionOneFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
+        //Finding navigation drawer fragment
+        mNavigationDrawerFragment = (NavigationDrawerFragment)
+                getFragmentManager().findFragmentById(R.id.navigation_drawer);
+
         //Instantiating poppyView
         mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
         poppyView = mPoppyViewHelper.createPoppyViewOnListView(R.id.list, R.layout.poppyview_actionbar);
@@ -123,6 +132,13 @@ public class SectionOneFragment extends Fragment {
                 MenuInflater menuInflater = popupMenu.getMenuInflater();
                 menuInflater.inflate(R.menu.global, popupMenu.getMenu());
                 popupMenu.show();
+            }
+        });
+        ImageView imageView = (ImageView) poppyView.findViewById(R.id.drawer_icon);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mNavigationDrawerFragment.mDrawerLayout.openDrawer(mNavigationDrawerFragment.mFragmentContainerView);
             }
         });
     }
@@ -203,19 +219,35 @@ public class SectionOneFragment extends Fragment {
     }
 
     public void loadBitmap(String imgURL, ImageView imageView) {
+
+        try {
+            cacheFile = new File(cacheDir, ""+imgURL.hashCode());
+            fileInputStream = new FileInputStream(cacheFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.d("cacheURL", "Bitmap not found at path");
+        }
+
         final Bitmap bitmap1 = getBitmapFromMemCache(imgURL);
+        final Bitmap bitmap2 = BitmapFactory.decodeStream(fileInputStream);
 
-
-        if (bitmap1 != null) {
-            imageView.setImageBitmap(bitmap1);
+        //Checking for cache in disk
+        if (bitmap2 != null) {
+            imageView.setImageBitmap(bitmap2);
         }
         else {
+            //Checking for cache in memory
+            if (bitmap1 != null) {
+                imageView.setImageBitmap(bitmap1);
+            }
+            else {
 
-            if (cancelPotentialWork(imgURL, imageView)) {
-                final LoadImage task = new LoadImage(imageView);
-                final AsyncDrawable asyncDrawable = new AsyncDrawable(imgURL, task);
-                imageView.setImageDrawable(asyncDrawable);
-                task.execute(imgURL);
+                if (cancelPotentialWork(imgURL, imageView)) {
+                    final LoadImage task = new LoadImage(imageView);
+                    final AsyncDrawable asyncDrawable = new AsyncDrawable(imgURL, task);
+                    imageView.setImageDrawable(asyncDrawable);
+                    task.execute(imgURL);
+                }
             }
         }
     }
@@ -237,8 +269,11 @@ public class SectionOneFragment extends Fragment {
         protected Bitmap doInBackground(String... strings) {
 
             data = strings[0];
-            final Bitmap bitmap1 = decodeSampledBitmapFromURL(data, 100, 100);
+            final Bitmap bitmap1 = decodeSampledBitmapFromURL(data, 50, 50);
+            //Adding bitmap to memory cache
             addBitmapToMemoryCache(data, bitmap1);
+            //Adding bitmap as cache image
+            putBitmapInDiskCache(data, bitmap1);
             return bitmap1;
         }
 
@@ -363,7 +398,6 @@ public class SectionOneFragment extends Fragment {
     /*
     * Using memory cache
     */
-
     public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
         if(getBitmapFromMemCache(key) == null) {
             mMemoryCache.put(key, bitmap);
@@ -373,4 +407,27 @@ public class SectionOneFragment extends Fragment {
     public Bitmap getBitmapFromMemCache(String key) {
         return mMemoryCache.get(key);
     }
+
+    /*
+    * Using disk cache
+    */
+    private void putBitmapInDiskCache(String key, Bitmap bitmap) {
+
+        //Create a path in that dir for a file
+        cacheFile = new File(cacheDir, ""+key.hashCode());
+        try {
+            //Create a file at the path, and open it for writing, obtaining the output stream
+            cacheFile.createNewFile();
+            FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
+            //Write the bitmap to the output stream, in PNG format
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+            //Flush and close the output stream
+            fileOutputStream.flush();
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.d("cachePng", "Error while saving image to cache");
+        }
+    }
+
 }
