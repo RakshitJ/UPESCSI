@@ -37,6 +37,8 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
+import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
+
 public class SectionOneFragment extends Fragment {
 
     private View rootView;
@@ -61,6 +63,7 @@ public class SectionOneFragment extends Fragment {
     private File cacheDir;
     private File cacheFile;
     private FileInputStream fileInputStream;
+    private SmoothProgressBar poppyViewProgress;
 
     int count;
     int i;
@@ -120,6 +123,7 @@ public class SectionOneFragment extends Fragment {
         mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
         poppyView = mPoppyViewHelper.createPoppyViewOnListView(R.id.list, R.layout.poppyview_actionbar);
         //Setting poppyView layout
+        poppyViewProgress = (SmoothProgressBar) poppyView.findViewById(R.id.poppyViewProgress);
         TextView tv = (TextView) poppyView.findViewById(R.id.poppy_title);
         tv.setText(R.string.title_section1);
         int tv_color = getResources().getColor(R.color.white);
@@ -225,7 +229,7 @@ public class SectionOneFragment extends Fragment {
             fileInputStream = new FileInputStream(cacheFile);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            Log.d("cacheURL", "Bitmap not found at path");
+            Log.d("cacheURL", "File path not found");
         }
 
         final Bitmap bitmap1 = getBitmapFromMemCache(imgURL);
@@ -266,10 +270,15 @@ public class SectionOneFragment extends Fragment {
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
         protected Bitmap doInBackground(String... strings) {
 
             data = strings[0];
-            final Bitmap bitmap1 = decodeSampledBitmapFromURL(data, 50, 50);
+            final Bitmap bitmap1 = decodeSampledBitmapFromURL(data, 150, 150);
             //Adding bitmap to memory cache
             addBitmapToMemoryCache(data, bitmap1);
             //Adding bitmap as cache image
@@ -413,6 +422,7 @@ public class SectionOneFragment extends Fragment {
     */
     private void putBitmapInDiskCache(String key, Bitmap bitmap) {
 
+        cacheDir.mkdir();
         //Create a path in that dir for a file
         cacheFile = new File(cacheDir, ""+key.hashCode());
         try {
