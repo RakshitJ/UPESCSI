@@ -11,13 +11,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import com.fourmob.poppyview.PoppyViewHelper;
@@ -81,7 +79,7 @@ public class SectionOneFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        rootView = inflater.inflate(R.layout.fragment_section_three, container, false);
+        rootView = inflater.inflate(R.layout.fragment_section_one, container, false);
 
         //Create a path pointing to sys-recommended cache dir for app
         cacheDir = new File(getActivity().getCacheDir(), "thumbnails");
@@ -102,7 +100,9 @@ public class SectionOneFragment extends Fragment {
             }
         };
 
+        //RelativeLayout emptyView = (RelativeLayout) rootView.findViewById(R.id.emptyView);
         listView = (ListView) rootView.findViewById(R.id.list);
+        //listView.addHeaderView(emptyView, null, false);
         eventTitle = new ArrayList<String>();
         eventImageUrl = new ArrayList<String>();
         adapter = new EventsAdapter(getActivity(), android.R.layout.simple_list_item_1, eventTitle);
@@ -120,7 +120,7 @@ public class SectionOneFragment extends Fragment {
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
 
         //Instantiating poppyView
-        mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
+        /*mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
         poppyView = mPoppyViewHelper.createPoppyViewOnListView(R.id.list, R.layout.poppyview_actionbar);
         //Setting poppyView layout
         poppyViewProgress = (SmoothProgressBar) poppyView.findViewById(R.id.poppyViewProgress);
@@ -144,7 +144,7 @@ public class SectionOneFragment extends Fragment {
             public void onClick(View view) {
                 mNavigationDrawerFragment.mDrawerLayout.openDrawer(mNavigationDrawerFragment.mFragmentContainerView);
             }
-        });
+        });*/
     }
 
     //Setting eventTitle and eventImageURL arrayList
@@ -440,4 +440,8 @@ public class SectionOneFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 }

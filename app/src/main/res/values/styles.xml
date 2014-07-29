@@ -10,6 +10,7 @@
     <style name="quantum_actionbar" parent="android:Widget.Holo.Light.ActionBar">
         <item name="android:background">@color/ab_background</item>
         <item name="android:titleTextStyle">@style/title_text</item>
+        <item name="android:windowContentOverlay">@null</item>
     </style>
 
     <!--Actionbar title -->
