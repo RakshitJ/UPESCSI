@@ -11,11 +11,13 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.fourmob.poppyview.PoppyViewHelper;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.upes.csi.R;
 
 import org.jsoup.Jsoup;
@@ -31,7 +33,7 @@ public class SectionThreeFragment extends Fragment {
     private PoppyViewHelper mPoppyViewHelper;
     private View rootView;
     private View poppyView;
-    private GridView gridView;
+    private ListView listView;
     private ArrayList<String> eventTitle;
     private ArrayList<String> eventImageUrl;
     private Document document;
@@ -55,9 +57,11 @@ public class SectionThreeFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         rootView = inflater.inflate(R.layout.fragment_section_three, container, false);
-        gridView = (GridView) rootView.findViewById(R.id.list);
+        listView = (ListView) rootView.findViewById(R.id.list);
         eventTitle = new ArrayList<String>();
         eventImageUrl = new ArrayList<String>();
+        ImageLoaderConfiguration imageLoaderConfiguration = new ImageLoaderConfiguration.Builder(getActivity()).build();
+        ImageLoader.getInstance().init(imageLoaderConfiguration);
         adapter = new EventsAdapter(getActivity(), android.R.layout.simple_list_item_1, eventTitle);
         new EventTitle().execute();
 
@@ -68,13 +72,13 @@ public class SectionThreeFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         //Instantiating PoppyView
-        /*mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
+        mPoppyViewHelper = new PoppyViewHelper(getActivity(), PoppyViewHelper.PoppyViewPosition.TOP);
         poppyView = mPoppyViewHelper.createPoppyViewOnListView(R.id.list, R.layout.poppyview_actionbar);
         //Setting poppyView layout
         TextView tv = (TextView) poppyView.findViewById(R.id.poppy_title);
         tv.setText(R.string.title_section3);
         int tv_color = getResources().getColor(R.color.white);
-        tv.setTextColor(tv_color);*/
+        tv.setTextColor(tv_color);
     }
 
     //Setting eventTitle and eventImageURL arrayList
@@ -121,7 +125,7 @@ public class SectionThreeFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void result) {
-            gridView.setAdapter(adapter);
+            listView.setAdapter(adapter);
         }
     }
 
@@ -140,7 +144,7 @@ public class SectionThreeFragment extends Fragment {
             tv = (TextView) row.findViewById(R.id.textView1);
 
             //Download image from URL at position
-            String imgURL = eventImageUrl.get(position);
+            //String imgURL = eventImageUrl.get(position);
             //loadBitmap(imgURL, iv);
 
             //Setting event title
