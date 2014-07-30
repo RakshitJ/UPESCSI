@@ -106,7 +106,7 @@ public class SectionOneFragment extends Fragment {
         eventTitle = new ArrayList<String>();
         eventImageUrl = new ArrayList<String>();
         adapter = new EventsAdapter(getActivity(), android.R.layout.simple_list_item_1, eventTitle);
-        new EventTitle().execute();
+        //new EventTitle().execute();
 
         return rootView;
     }

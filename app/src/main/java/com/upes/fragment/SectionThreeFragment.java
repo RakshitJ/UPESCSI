@@ -16,6 +16,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.fourmob.poppyview.PoppyViewHelper;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.upes.csi.R;
@@ -27,6 +28,8 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import fr.castorflex.android.smoothprogressbar.SmoothProgressBar;
 
 public class SectionThreeFragment extends Fragment {
 
@@ -42,6 +45,9 @@ public class SectionThreeFragment extends Fragment {
     private View row;
     private TextView tv;
     private ImageView iv;
+    private ImageLoaderConfiguration imageLoaderConfiguration;
+    private DisplayImageOptions displayImageOptions;
+    private SmoothProgressBar smoothProgressBar;
 
     public SectionThreeFragment() {
         // Required empty public constructor
@@ -60,7 +66,16 @@ public class SectionThreeFragment extends Fragment {
         listView = (ListView) rootView.findViewById(R.id.list);
         eventTitle = new ArrayList<String>();
         eventImageUrl = new ArrayList<String>();
-        ImageLoaderConfiguration imageLoaderConfiguration = new ImageLoaderConfiguration.Builder(getActivity()).build();
+        // Create default options which will be used for every displayImage() call
+        // if no options will be passed to this method
+        displayImageOptions = new DisplayImageOptions.Builder()
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .build();
+        // Create global configuration and initialize ImageLoader with this config
+        imageLoaderConfiguration = new ImageLoaderConfiguration.Builder(getActivity())
+                .defaultDisplayImageOptions(displayImageOptions)
+                .build();
         ImageLoader.getInstance().init(imageLoaderConfiguration);
         adapter = new EventsAdapter(getActivity(), android.R.layout.simple_list_item_1, eventTitle);
         new EventTitle().execute();
@@ -79,6 +94,7 @@ public class SectionThreeFragment extends Fragment {
         tv.setText(R.string.title_section3);
         int tv_color = getResources().getColor(R.color.white);
         tv.setTextColor(tv_color);
+        smoothProgressBar = (SmoothProgressBar) poppyView.findViewById(R.id.poppyViewProgress);
     }
 
     //Setting eventTitle and eventImageURL arrayList
@@ -150,6 +166,9 @@ public class SectionThreeFragment extends Fragment {
             //Setting event title
             String title = eventTitle.get(position);
             tv.setText(title);
+
+            // Loading images from URL
+            ImageLoader.getInstance().displayImage(URL+eventImageUrl.get(position), iv, displayImageOptions);
 
             return row;
         }
